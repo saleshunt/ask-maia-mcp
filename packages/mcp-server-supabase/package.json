@@ -1,7 +1,7 @@
 {
-  "name": "@supabase/mcp-server-supabase",
-  "version": "0.4.5",
-  "description": "MCP server for interacting with Supabase",
+  "name": "@maia/ask-maia-mcp",
+  "version": "1.0.0",
+  "description": "MCP server for querying Maia's meeting automation database",
   "license": "Apache-2.0",
   "type": "module",
   "main": "dist/index.cjs",
@@ -21,7 +21,7 @@
     "dist/**/*"
   ],
   "bin": {
-    "mcp-server-supabase": "./dist/transports/stdio.js"
+    "ask-emile-mcp": "./dist/transports/stdio.js"
   },
   "exports": {
     ".": {

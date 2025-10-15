@@ -14,7 +14,6 @@ async function main() {
     values: {
       ['access-token']: cliAccessToken,
       ['project-ref']: projectId,
-      ['read-only']: readOnly,
       ['api-url']: apiUrl,
       ['version']: showVersion,
       ['features']: cliFeatures,
@@ -26,10 +25,6 @@ async function main() {
       },
       ['project-ref']: {
         type: 'string',
-      },
-      ['read-only']: {
-        type: 'boolean',
-        default: false,
       },
       ['api-url']: {
         type: 'string',
@@ -64,10 +59,10 @@ async function main() {
     apiUrl,
   });
 
+  // Read-only mode is permanently enforced for security
   const server = createSupabaseMcpServer({
     platform,
     projectId,
-    readOnly,
     features,
   });
 
