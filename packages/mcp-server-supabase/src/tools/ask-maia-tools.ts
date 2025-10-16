@@ -36,11 +36,12 @@ export function getAskMaiaTools(options: AskMaiaToolsOptions): Record<string, To
             m.fireflies_meeting_summary,
             m.contacts_name_and_email,
             mc.name as category_name,
-            mc.assessment_type,
-            mc.meeting_category_rationale,
+            mcai.assessment_type,
+            mcai.meeting_category_rationale,
             m.created_at
           FROM meetings m
-          LEFT JOIN meeting_categorizations mc ON m.meeting_categorization_by_ai_id = mc.id
+          LEFT JOIN meeting_categorization_by_ai mcai ON m.meeting_categorization_by_ai_id = mcai.id
+          LEFT JOIN meeting_categories mc ON mcai.meeting_category_id = mc.id
           WHERE 1=1
         `;
 
@@ -48,7 +49,7 @@ export function getAskMaiaTools(options: AskMaiaToolsOptions): Record<string, To
           query += ` AND mc.name ILIKE '%${category_name}%'`;
         }
         if (assessment_type) {
-          query += ` AND mc.assessment_type = '${assessment_type}'`;
+          query += ` AND mcai.assessment_type = '${assessment_type}'`;
         }
 
         query += ` ORDER BY m.fireflies_timestamp DESC LIMIT ${limit};`;
@@ -82,7 +83,8 @@ export function getAskMaiaTools(options: AskMaiaToolsOptions): Record<string, To
             mc.name as category_name,
             m.created_at
           FROM meetings m
-          LEFT JOIN meeting_categorizations mc ON m.meeting_categorization_by_ai_id = mc.id
+          LEFT JOIN meeting_categorization_by_ai mcai ON m.meeting_categorization_by_ai_id = mcai.id
+          LEFT JOIN meeting_categories mc ON mcai.meeting_category_id = mc.id
           WHERE 
             m.fireflies_transcript ILIKE '%${search_term}%'
             OR m.fireflies_meeting_summary ILIKE '%${search_term}%'
@@ -159,7 +161,8 @@ export function getAskMaiaTools(options: AskMaiaToolsOptions): Record<string, To
             mc.name as category_name,
             m.created_at
           FROM meetings m
-          LEFT JOIN meeting_categorizations mc ON m.meeting_categorization_by_ai_id = mc.id
+          LEFT JOIN meeting_categorization_by_ai mcai ON m.meeting_categorization_by_ai_id = mcai.id
+          LEFT JOIN meeting_categories mc ON mcai.meeting_category_id = mc.id
           WHERE m.contacts_name_and_email::text ILIKE '%${participant}%'
           ORDER BY m.fireflies_timestamp DESC
           LIMIT ${limit};
@@ -184,18 +187,19 @@ export function getAskMaiaTools(options: AskMaiaToolsOptions): Record<string, To
         let query = `
           SELECT DISTINCT
             mc.name as category_name,
-            mc.assessment_type,
+            mcai.assessment_type,
             COUNT(*) as usage_count
-          FROM meeting_categorizations mc
+          FROM meeting_categorization_by_ai mcai
+          LEFT JOIN meeting_categories mc ON mcai.meeting_category_id = mc.id
           WHERE 1=1
         `;
 
         if (assessment_type) {
-          query += ` AND mc.assessment_type = '${assessment_type}'`;
+          query += ` AND mcai.assessment_type = '${assessment_type}'`;
         }
 
         query += `
-          GROUP BY mc.name, mc.assessment_type
+          GROUP BY mc.name, mcai.assessment_type
           ORDER BY usage_count DESC;
         `;
 
@@ -222,11 +226,12 @@ export function getAskMaiaTools(options: AskMaiaToolsOptions): Record<string, To
             -- Stats by category
             SELECT 
               mc.name as category_name,
-              mc.assessment_type,
+              mcai.assessment_type,
               COUNT(*) as meeting_count
             FROM meetings m
-            LEFT JOIN meeting_categorizations mc ON m.meeting_categorization_by_ai_id = mc.id
-            GROUP BY mc.name, mc.assessment_type
+            LEFT JOIN meeting_categorization_by_ai mcai ON m.meeting_categorization_by_ai_id = mcai.id
+            LEFT JOIN meeting_categories mc ON mcai.meeting_category_id = mc.id
+            GROUP BY mc.name, mcai.assessment_type
             ORDER BY meeting_count DESC;
           `;
         }
@@ -250,11 +255,11 @@ export function getAskMaiaTools(options: AskMaiaToolsOptions): Record<string, To
           query += `
             -- Stats by assessment type
             SELECT 
-              mc.assessment_type,
+              mcai.assessment_type,
               COUNT(*) as meeting_count
             FROM meetings m
-            LEFT JOIN meeting_categorizations mc ON m.meeting_categorization_by_ai_id = mc.id
-            GROUP BY mc.assessment_type
+            LEFT JOIN meeting_categorization_by_ai mcai ON m.meeting_categorization_by_ai_id = mcai.id
+            GROUP BY mcai.assessment_type
             ORDER BY meeting_count DESC;
           `;
         }
@@ -286,12 +291,14 @@ export function getAskMaiaTools(options: AskMaiaToolsOptions): Record<string, To
             m.contacts_name_and_email,
             m.meeting_categorization_by_ai_id,
             mc.name as category_name,
-            mc.assessment_type,
-            mc.meeting_category_rationale,
+            mcai.assessment_type,
+            mcai.meeting_category_rationale,
+            mcai.confidence_score,
             m.created_at,
             m.updated_at
           FROM meetings m
-          LEFT JOIN meeting_categorizations mc ON m.meeting_categorization_by_ai_id = mc.id
+          LEFT JOIN meeting_categorization_by_ai mcai ON m.meeting_categorization_by_ai_id = mcai.id
+          LEFT JOIN meeting_categories mc ON mcai.meeting_category_id = mc.id
           WHERE m.fireflies_id = '${fireflies_id}';
         `;
 
@@ -321,10 +328,11 @@ export function getAskMaiaTools(options: AskMaiaToolsOptions): Record<string, To
             m.fireflies_meeting_summary,
             m.contacts_name_and_email,
             mc.name as category_name,
-            mc.assessment_type,
+            mcai.assessment_type,
             m.created_at
           FROM meetings m
-          LEFT JOIN meeting_categorizations mc ON m.meeting_categorization_by_ai_id = mc.id
+          LEFT JOIN meeting_categorization_by_ai mcai ON m.meeting_categorization_by_ai_id = mcai.id
+          LEFT JOIN meeting_categories mc ON mcai.meeting_category_id = mc.id
           WHERE m.fireflies_timestamp >= NOW() - INTERVAL '${days_back} days'
           ORDER BY m.fireflies_timestamp DESC
           LIMIT ${limit};
@@ -353,8 +361,9 @@ export function getAskMaiaTools(options: AskMaiaToolsOptions): Record<string, To
             MAX(fireflies_timestamp) as last_meeting_date,
             ARRAY_AGG(DISTINCT mc.name) FILTER (WHERE mc.name IS NOT NULL) as categories
           FROM meetings m
-          LEFT JOIN meeting_categorizations mc ON m.meeting_categorization_by_ai_id = mc.id
-          WHERE mc.assessment_type = 'External'
+          LEFT JOIN meeting_categorization_by_ai mcai ON m.meeting_categorization_by_ai_id = mcai.id
+          LEFT JOIN meeting_categories mc ON mcai.meeting_category_id = mc.id
+          WHERE mcai.assessment_type = 'External'
           AND contacts_name_and_email IS NOT NULL
           GROUP BY contacts_name_and_email
           ORDER BY meeting_count DESC

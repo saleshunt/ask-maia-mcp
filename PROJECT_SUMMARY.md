@@ -78,10 +78,10 @@ Successfully created a custom MCP server called **"Ask Maia"** optimized for que
 ### Core Tables
 
 1. **meetings** - Transcripts, summaries, participant data
-2. **meeting_categorizations** - AI category assignments (Internal/External)
-3. **emails_created_by_ai** - Generated follow-up emails
-4. **contacts** - Internal and external participants
-5. **meeting_categories** - User-defined categories with prompts
+2. **meeting_categorization_by_ai** - AI categorization assignments with rationale and confidence scores
+3. **meeting_categories** - User-defined categories with prompts (linked via meeting_categorization_by_ai)
+4. **emails_created_by_ai** - Generated follow-up emails
+5. **contacts** - Internal and external participants
 6. **users** - Maia users with company associations
 7. **companies** - Organization profiles and settings
 

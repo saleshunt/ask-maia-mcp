@@ -108,11 +108,18 @@ npm run build
 - Participant information
 - Links to categorization and emails
 
-**meeting_categorizations** - AI-assigned categories
+**meeting_categorization_by_ai** - AI categorization assignments
 
 - Assessment type (Internal/External)
-- Category name and ID
+- Category ID (links to meeting_categories)
 - Detailed rationale from AI
+- Confidence score
+
+**meeting_categories** - Category definitions
+
+- Category name and description
+- System prompts for categorization
+- Created by users or system
 
 **emails_created_by_ai** - Generated follow-up emails
 
