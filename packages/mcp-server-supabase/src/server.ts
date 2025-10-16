@@ -3,6 +3,7 @@ import { z } from 'zod';
 import packageJson from '../package.json' with { type: 'json' };
 import type { SupabasePlatform } from './platform/types.js';
 import { getAskMaiaTools } from './tools/ask-maia-tools.js';
+import { getAskMaiaWriteTools } from './tools/ask-maia-write-tools.js';
 import { getDatabaseOperationTools } from './tools/database-operation-tools.js';
 import { getDebuggingTools } from './tools/debugging-tools.js';
 
@@ -36,22 +37,22 @@ export type SupabaseMcpServerOptions = {
 
   /**
    * Features to enable.
-   * Options: 'ask-maia', 'database', 'debug' (read-only only)
-   * Write operations are permanently disabled for security.
+   * Options: 'ask-maia', 'database', 'debug'
+   * Write operations require explicit confirmation via confirm=true parameter.
    */
   features?: string[];
 };
 
-// Only read-only features are allowed
+// Feature groups with confirmation-based safety
 const featureGroupSchema = z.enum([
-  'ask-maia',  // Custom Maia query tools (read-only)
-  'database',  // Database operations (read-only)
+  'ask-maia',  // Custom Maia query tools (read + write with confirmation)
+  'database',  // Database operations (read + write with confirmation)
   'debug',     // Debugging tools (read-only)
 ]);
 
 export type FeatureGroup = z.infer<typeof featureGroupSchema>;
 
-// All features are read-only by default
+// All features enabled by default (write operations require confirmation)
 const DEFAULT_FEATURES: FeatureGroup[] = [
   'ask-maia',
   'database',
@@ -83,18 +84,20 @@ export function createSupabaseMcpServer(options: SupabaseMcpServerOptions) {
     tools: async () => {
       const tools: Record<string, Tool> = {};
 
-      // ONLY READ-ONLY TOOLS ARE ENABLED
-      // Write operations (account, branching, functions, development, storage) are permanently disabled
+      // Write operations are enabled with EXPLICIT CONFIRMATION REQUIREMENTS
+      // All INSERT/UPDATE/DELETE operations require confirm=true parameter
+      // Account, branching, functions, development, storage tools remain disabled
 
       if (enabledFeatures.has('ask-maia')) {
         Object.assign(tools, getAskMaiaTools({ platform, projectId }));
+        Object.assign(tools, getAskMaiaWriteTools({ platform, projectId }));
       }
 
       if (enabledFeatures.has('database')) {
-        // Force read-only mode for all database operations
+        // Enable write operations with confirmation requirements
         Object.assign(
           tools,
-          getDatabaseOperationTools({ platform, projectId, readOnly: true })
+          getDatabaseOperationTools({ platform, projectId, readOnly: false })
         );
       }
 

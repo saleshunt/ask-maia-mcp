@@ -1,8 +1,8 @@
 # Ask Maia MCP Server
 
-> Query and understand Maia's meeting automation database - meetings, AI categorizations, generated emails, and more.
+> Query and modify Maia's meeting automation database - meetings, AI categorizations, generated emails, and more.
 
-An MCP (Model Context Protocol) server optimized for querying Maia's Supabase database. This server provides specialized tools for understanding meetings, AI-generated content, participant tracking, and workflow analytics.
+An MCP (Model Context Protocol) server optimized for interacting with Maia's Supabase database. This server provides specialized tools for understanding meetings, AI-generated content, participant tracking, workflow analytics, and safe data modification with built-in confirmation safeguards.
 
 ## 🎯 What is Maia?
 
@@ -37,9 +37,19 @@ Maia is an intelligent meeting automation workflow that:
 - `get_external_contacts` - All external participants with meeting frequency
 - `get_user_list` - All users in Maia with company info
 
+### Data Modification Tools (🔒 Require Confirmation)
+
+- `update_meeting_category` - Change AI categorization for a meeting
+- `delete_meeting` - Permanently remove a meeting from database
+- `insert_meeting_note` - Add custom notes/annotations to meetings
+- `update_email_status` - Modify AI-generated email content
+
+**🛡️ Safety:** All write operations require explicit user confirmation via `confirm: true` parameter.
+
 ### Standard Database Tools
 
-- `execute_sql`: Run custom SQL queries (read-only)
+- `execute_sql`: Run SQL queries (supports INSERT/UPDATE/DELETE with confirmation)
+- `apply_migration`: Apply schema changes (DDL operations)
 - `list_tables`: See all tables in database
 - `list_extensions`: List PostgreSQL extensions
 
@@ -47,6 +57,14 @@ Maia is an intelligent meeting automation workflow that:
 
 - `get_logs`: View logs by service type
 - `get_advisors`: Check for security/performance issues
+
+---
+
+## 📚 Documentation
+
+- **[WRITE_OPERATIONS_GUIDE.md](./WRITE_OPERATIONS_GUIDE.md)** - Complete guide to data modification tools, safety mechanisms, and usage examples
+- **[TOOLS_REFERENCE.md](./TOOLS_REFERENCE.md)** - Full reference of all available MCP tools
+- **[SETUP.md](./SETUP.md)** - Installation and configuration instructions
 
 ## Prerequisites
 
